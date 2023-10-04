@@ -7,12 +7,12 @@ from outflank_stage1.task.tasks import DownloadTask
 
 class ProcessListHandlesBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("ProcessListHandles")
+        super().__init__("process_list_handles", base_binary_name="ProcessListHandles")
 
         self.parser.description = (
             "Lists open handles in process."
         )
-        self.parser.epilog = "Usage: ProcessListHandles <pid>"
+        self.parser.epilog = "Usage: process_list_handles <pid>"
 
         self.parser.add_argument('pid', help='The process to list the handles of. You must have permission to open the specified process.')
          

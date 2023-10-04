@@ -7,12 +7,12 @@ from outflank_stage1.task.tasks import DownloadTask
 
 class SchtasksStopBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("schtasksstop")
+        super().__init__("schtasks_stop", base_binary_name="schtasksstop")
 
         self.parser.description = (
             "Stops the specified scheduled task."
         )
-        self.parser.epilog = """Usage:   schtasksstop <TASKNAME> [--hostname HOSTNAME]
+        self.parser.epilog = """Usage:   schtasks_stop <TASKNAME> [--hostname HOSTNAME]
          HOSTNAME  Optional. The target system (local system if not specified)
          TASKNAME  Required. The scheduled task name."""
 

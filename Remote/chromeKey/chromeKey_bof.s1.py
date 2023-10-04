@@ -7,9 +7,9 @@ from outflank_stage1.task.tasks import DownloadTask
 
 class ChromeKeyBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("chromeKey")
+        super().__init__("chrome_key", base_binary_name="chromeKey")
 
         self.parser.description = (
             "Decrypts the provided base64 encoded Chrome key"
         )
-        self.parser.epilog = "Usage: chromeKey"
+        self.parser.epilog = "Usage: chrome_key"
