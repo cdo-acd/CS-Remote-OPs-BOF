@@ -50,7 +50,7 @@ class SCCreateBOF(BaseBOFTask):
         self.parser.add_argument('description', help='The description of the service.')
         self.parser.add_argument('errormode', help=f'The error mode of the service. Possible values: {_error_choices_string}')
         self.parser.add_argument('startmode', help=f'The start mode for the service. Possible values: {_start_choices_string}')
-        self.parser.add_argument('--type', default="3", help=f'The type of service to create. Possibel values: {_type_choices_string}')
+        self.parser.add_argument('--type', default=3, type=int, help=f'The type of service to create. Possibel values: {_type_choices_string}')
         self.parser.add_argument('--hostname', help='The host to connect to and run the command on. The local system is targeted if a HOSTNAME is not specified.')
          
     def _encode_arguments_bof(
@@ -67,6 +67,8 @@ class SCCreateBOF(BaseBOFTask):
                 serviceType = 0x10
             case 4:
                 serviceType = 0x20
+            case _:
+                serviceType = 0x10
 
         return [
             (BOFArgumentEncoding.STR, parser_arguments.hostname),
