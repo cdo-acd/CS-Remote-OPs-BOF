@@ -7,12 +7,12 @@ from outflank_stage1.task.tasks import DownloadTask
 
 class SchtasksRunBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("schtasksrun")
+        super().__init__("schtasks_run", base_binary_name="schtasksrun")
 
         self.parser.description = (
             "Run the specified scheduled task."
         )
-        self.parser.epilog = """Usage:   schtasksrun <TASKNAME> [--hostname HOSTNAME]
+        self.parser.epilog = """Usage:   schtasks_run <TASKNAME> [--hostname HOSTNAME]
          HOSTNAME  Optional. The target system (local system if not specified)
          TASKNAME  Required. The scheduled task name."""
 

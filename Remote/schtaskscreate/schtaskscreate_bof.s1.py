@@ -7,7 +7,7 @@ from outflank_stage1.task.exceptions import TaskInvalidArgumentsException
 
 class SchtasksCreateBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("schtaskscreate")
+        super().__init__("schtasks_create", base_binary_name="schtaskscreate")
 
         _user_choices = ["USER", "XML", "SYSTEM"]
         _user_choices_string = ', '.join(_user_choices)
@@ -17,7 +17,7 @@ class SchtasksCreateBOF(BaseBOFTask):
         self.parser.description = (
             "Creates a new scheduled task."
         )
-        self.parser.epilog = """Usage:   schtaskscreate <name> <user> <force> [--hostname HOSTNAME]
+        self.parser.epilog = """Usage:   schtasks_create <name> <user> <force> [--hostname HOSTNAME]
          HOSTNAME  Optional. The system on which to create the task.
          NAME  Required. The path for the created task.
          USER  Required. The username to associate with the task. The valid
@@ -56,10 +56,18 @@ class SchtasksCreateBOF(BaseBOFTask):
 
         xml = self.get_file_by_name("xml")
 
+        print([
+            (BOFArgumentEncoding.WSTR, parser_arguments.hostname),
+            (BOFArgumentEncoding.WSTR, parser_arguments.name),
+            (BOFArgumentEncoding.BUFFER, xml.content),
+            (BOFArgumentEncoding.INT, user),
+            (BOFArgumentEncoding.INT, force),
+        ])
+
         return [
             (BOFArgumentEncoding.WSTR, parser_arguments.hostname),
             (BOFArgumentEncoding.WSTR, parser_arguments.name),
-            (BOFArgumentEncoding.WSTR, xml.content),
+            (BOFArgumentEncoding.BUFFER, xml.content),
             (BOFArgumentEncoding.INT, user),
             (BOFArgumentEncoding.INT, force),
         ]

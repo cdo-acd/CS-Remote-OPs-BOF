@@ -7,7 +7,7 @@ from outflank_stage1.task.tasks import DownloadTask
 
 class SchtasksDeleteBOF(BaseBOFTask):
     def __init__(self):
-        super().__init__("schtasksdelete")
+        super().__init__("schtasks_delete", base_binary_name="schtasks_delete")
 
         _type_choices = ["FOLDER", "TASK"]
         _type_choices_string = ', '.join(_type_choices)
@@ -15,7 +15,7 @@ class SchtasksDeleteBOF(BaseBOFTask):
         self.parser.description = (
             "Deletes the specified scheduled task or folder."
         )
-        self.parser.epilog = """Usage:   schtasksdelete <NAME> <TYPE> [--hostname HOSTNAME]
+        self.parser.epilog = """Usage:   schtasks_delete <NAME> <TYPE> [--hostname HOSTNAME]
          HOSTNAME Optional. The target system (local system if not specified)
          NAME Required. The task or folder name.
          TYPE     Required. The type of target to delete. Valid options are:
