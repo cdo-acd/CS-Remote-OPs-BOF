@@ -18,7 +18,7 @@ class SCDeleteBOF(BaseBOFTask):
                   local system is targeted if a HOSTNAME is not specified."""
 
         self.parser.add_argument('svcname', help=f'The name of the service to create.')
-        self.parser.add_argument('--hostname', help='The host to connect to and run the command on. The local system is targeted if a HOSTNAME is not specified.')
+        self.parser.add_argument('--hostname', default=str(), help='The host to connect to and run the command on. The local system is targeted if a HOSTNAME is not specified.')
          
     def _encode_arguments_bof(
         self, arguments: List[str]
