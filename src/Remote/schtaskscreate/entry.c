@@ -9,6 +9,7 @@
 #define SCHTASKS_USER 0
 #define SCHTASKS_SYSTEM 1
 #define SCHTASKS_XML_PRINCIPAL 2
+#define SCHTASKS_NULL 3
 
 #define USER_SYSTEM_STRING L"nt authority\\SYSTEM"
 
@@ -406,6 +407,12 @@ DWORD createTask(const wchar_t * server, wchar_t * taskpath, const wchar_t* xmld
 	else if (mode == SCHTASKS_XML_PRINCIPAL)
 	{
 		taskType = TASK_LOGON_NONE;
+	}
+	else if (mode == SCHTASKS_NULL)
+	{
+		Vthisuser = VNull;
+		Vsddl = VNull;
+		taskType = TASK_LOGON_INTERACTIVE_TOKEN;
 	}
 	else
 	{
