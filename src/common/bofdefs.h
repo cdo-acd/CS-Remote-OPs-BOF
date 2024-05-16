@@ -113,6 +113,7 @@ WINBASEAPI WINBOOL WINAPI KERNEL32$Process32Next(HANDLE hSnapshot,LPPROCESSENTRY
 WINBASEAPI HMODULE WINAPI KERNEL32$LoadLibraryA (LPCSTR lpLibFileName);
 WINBASEAPI FARPROC WINAPI KERNEL32$GetProcAddress (HMODULE hModule, LPCSTR lpProcName);
 WINBASEAPI WINBOOL WINAPI KERNEL32$FreeLibrary (HMODULE hLibModule);
+WINBASEAPI WINBOOL WINAPI KERNEL32$WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 
 //IPHLPAPI
 //ULONG WINAPI IPHLPAPI$GetAdaptersInfo (PIP_ADAPTER_INFO AdapterInfo, PULONG SizePointer);
@@ -155,6 +156,7 @@ WINBASEAPI wchar_t *__cdecl MSVCRT$wcsstr(const wchar_t *_Str,const wchar_t *_Su
 WINBASEAPI wchar_t *__cdecl MSVCRT$wcstok(wchar_t * __restrict__ _Str,const wchar_t * __restrict__ _Delim);
 WINBASEAPI unsigned long __cdecl MSVCRT$wcstoul(const wchar_t * __restrict__ _Str,wchar_t ** __restrict__ _EndPtr,int _Radix);
 WINBASEAPI long __cdecl MSVCRT$_wtol(const wchar_t * str);
+WINBASEAPI char* __cdecl MSVCRT$strcat(char* strDestination, const char* strSource);
 
 //SHLWAPI
 WINBASEAPI LPWSTR WINAPI SHLWAPI$PathCombineW(LPWSTR pszDest,LPCWSTR pszDir,LPCWSTR pszFile);
@@ -512,6 +514,7 @@ DWORD WINAPI PSAPI$GetModuleBaseNameW(HANDLE hProcess,HMODULE hModule,LPWSTR lpB
 #define KERNEL32$LoadLibraryA LoadLibraryA
 #define KERNEL32$GetProcAddress GetProcAddress
 #define KERNEL32$FreeLibrary FreeLibrary
+#define KERNEL32$WriteFile WriteFile
 
 //IPHLPAPI
 #define IPHLPAPI$GetAdaptersInfo GetAdaptersInfo 
