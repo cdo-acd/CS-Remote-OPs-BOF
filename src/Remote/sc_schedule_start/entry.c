@@ -189,7 +189,7 @@ DWORD get_service_status_wait(SC_HANDLE scService)
 			break;
 		}
 
-		Sleep(100);
+		KERNEL32$Sleep(100);
 
 	} while (1);
 
