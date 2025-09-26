@@ -18,8 +18,11 @@ VOID go(
 	LPCWSTR lpswzTemplate = NULL;
 	LPCWSTR lpswzSubject = NULL;
 	LPCWSTR lpswzAltName = NULL;
+	LPCWSTR lpPrivKey = NULL;
 	BOOL bInstall = FALSE;
 	BOOL bMachine = FALSE;
+	BOOL addAppPolicy = FALSE;
+	BOOL dns = FALSE;
     
 	if (!bofstart())
 	{
@@ -33,6 +36,8 @@ VOID go(
 	lpswzAltName = (LPCWSTR)BeaconDataExtract(&parser, NULL);
 	bInstall = (BOOL)BeaconDataShort(&parser);
 	bMachine = (BOOL)BeaconDataShort(&parser);
+	addAppPolicy = (BOOL)BeaconDataShort(&parser);
+	dns = (BOOL)BeaconDataShort(&parser);
 	
 	internal_printf("\nRequesting a %S certificate from %S for the current user\n", lpswzTemplate, lpswzCA);
 
@@ -42,7 +47,9 @@ VOID go(
 		lpswzSubject,
 		lpswzAltName,
 		bInstall,
-		bMachine
+		bMachine,
+		addAppPolicy,
+		dns
 	);
 	if (S_OK != hr)
 	{

